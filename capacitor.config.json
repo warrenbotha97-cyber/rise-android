@@ -1,0 +1,18 @@
+{
+  "appId": "com.rise.dailypeak",
+  "appName": "RISE",
+  "webDir": "www",
+  "server": {
+    "url": "https://petite-rise-daily-peak.base44.app",
+    "cleartext": false,
+    "allowNavigation": [
+      "petite-rise-daily-peak.base44.app",
+      "*.base44.app",
+      "base44.app"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": true
+  }
+}
