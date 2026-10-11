@@ -32,7 +32,7 @@ jobs:
       - name: Generate app icons from assets/icon-only.png
         run: npx capacitor-assets generate --android --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000'
 
-      - name: Let the app see the phone's speech engine (Android 11+)
+      - name: Patch manifest (speech engine visibility + notification permission)
         run: |
           python3 - <<'EOF'
           p = "android/app/src/main/AndroidManifest.xml"
@@ -40,7 +40,10 @@ jobs:
           if "android.intent.action.TTS_SERVICE" not in s:
               q = '    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n'
               s = s.replace("</manifest>", q + "</manifest>")
-              open(p, "w").write(s)
+          if "android.permission.POST_NOTIFICATIONS" not in s:
+              perm = '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n'
+              s = s.replace("</manifest>", perm + "</manifest>")
+          open(p, "w").write(s)
           EOF
 
       - name: Sync Capacitor config and plugins
