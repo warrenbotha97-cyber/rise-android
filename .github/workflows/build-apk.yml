@@ -29,11 +29,25 @@ jobs:
       - name: Generate Android project
         run: npx cap add android
 
-      - name: Sync Capacitor config
+      - name: Generate app icons from assets/icon-only.png
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000'
+
+      - name: Let the app see the phone's speech engine (Android 11+)
+        run: |
+          python3 - <<'EOF'
+          p = "android/app/src/main/AndroidManifest.xml"
+          s = open(p).read()
+          if "android.intent.action.TTS_SERVICE" not in s:
+              q = '    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n'
+              s = s.replace("</manifest>", q + "</manifest>")
+              open(p, "w").write(s)
+          EOF
+
+      - name: Sync Capacitor config and plugins
         run: npx cap sync android
 
-      - name: Show manifest permissions (for the log)
-        run: grep -n "uses-permission" android/app/src/main/AndroidManifest.xml
+      - name: Show manifest permissions and queries (for the log)
+        run: grep -nE "uses-permission|queries|TTS_SERVICE" android/app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
         working-directory: android
