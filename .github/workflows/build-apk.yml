@@ -44,9 +44,15 @@ jobs:
           if "android.intent.action.TTS_SERVICE" not in s:
               q = '    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n'
               s = s.replace("</manifest>", q + "</manifest>")
-          if "android.permission.POST_NOTIFICATIONS" not in s:
-              perm = '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n'
-              s = s.replace("</manifest>", perm + "</manifest>")
+          for name in (
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+              "android.permission.USE_EXACT_ALARM",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+          ):
+              if name not in s:
+                  perm = '    <uses-permission android:name="%s" />\n' % name
+                  s = s.replace("</manifest>", perm + "</manifest>")
           open(p, "w").write(s)
           EOF
 
