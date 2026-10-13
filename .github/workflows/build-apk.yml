@@ -36,6 +36,10 @@ jobs:
           .icon-venv/bin/python scripts/make_icons.py
           find android/app/src/main/res -name 'ic_launcher*' | sort
 
+      - name: Add the RISE opening animation (skipped, not fatal, if it cannot be applied)
+        continue-on-error: true
+        run: .icon-venv/bin/python scripts/make_splash.py
+
       - name: Patch manifest (speech engine visibility + notification permission)
         run: |
           python3 - <<'EOF'
