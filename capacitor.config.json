@@ -8,11 +8,15 @@
     "allowNavigation": [
       "petite-rise-daily-peak.base44.app",
       "*.base44.app",
-      "base44.app"
+      "base44.app",
+      "payfast.co.za",
+      "www.payfast.co.za",
+      "*.payfast.co.za",
+      "sandbox.payfast.co.za"
     ]
   },
   "android": {
     "allowMixedContent": false,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": false
   }
 }
