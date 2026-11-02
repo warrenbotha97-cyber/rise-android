@@ -60,6 +60,9 @@ jobs:
           open(p, "w").write(s)
           EOF
 
+      - name: Add the riseapp:// return link (PayFast back to the app)
+        run: python3 scripts/patch_android.py
+
       - name: Sync Capacitor config and plugins
         run: npx cap sync android
 
