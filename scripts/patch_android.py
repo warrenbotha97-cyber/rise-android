@@ -21,22 +21,13 @@ FILTER = """
             </intent-filter>
 """
 
-JAVA = """package com.rise.dailypeak;
+IMPORTS = "import android.content.Intent;\nimport android.net.Uri;\n"
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import com.getcapacitor.BridgeActivity;
-
-public class MainActivity extends BridgeActivity {
+APP_URL_FIELD = """
     private static final String APP_URL = "%s";
+""" % APP_URL
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        openReturnLink(getIntent());
-    }
-
+METHODS = """
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -55,8 +46,37 @@ public class MainActivity extends BridgeActivity {
             getBridge().getWebView().post(() -> getBridge().getWebView().loadUrl(url));
         }
     }
-}
-""" % APP_URL
+"""
+
+
+def patch_activity():
+    """Add the return link to the EXISTING MainActivity (the one with the opening animation).
+
+    Never overwrite the file: other build steps (make_splash.py) put their own code in it.
+    Anything unexpected stops the build, so a clash is loud instead of silently dropping a feature.
+    """
+    s = open(ACTIVITY).read()
+    if "openReturnLink" in s:
+        return
+    if "showSplash" not in s:
+        sys.exit("MainActivity has no opening animation - run make_splash.py before patch_android.py")
+    anchor = "import com.getcapacitor.BridgeActivity;"
+    if anchor not in s:
+        sys.exit("BridgeActivity import not found in MainActivity")
+    s = s.replace(anchor, IMPORTS + anchor, 1)
+    cls = re.search(r"public class MainActivity extends BridgeActivity \{", s)
+    if not cls:
+        sys.exit("MainActivity class declaration not found")
+    s = s[:cls.end()] + APP_URL_FIELD + s[cls.end():]
+    call = "super.onCreate(savedInstanceState);"
+    if call not in s:
+        sys.exit("onCreate super call not found in MainActivity")
+    s = s.replace(call, call + "\n        openReturnLink(getIntent());", 1)
+    end = s.rstrip().rfind("}")
+    s = s[:end] + METHODS + "}\n"
+    open(ACTIVITY, "w").write(s)
+    if "showSplash" not in s or "openReturnLink" not in s:
+        sys.exit("MainActivity lost a feature while patching")
 
 
 def main():
@@ -67,7 +87,7 @@ def main():
             sys.exit("MainActivity </activity> not found in manifest")
         s = s[:idx] + FILTER + "        " + s[idx:]
         open(MANIFEST, "w").write(s)
-    open(ACTIVITY, "w").write(JAVA)
+    patch_activity()
     print("patched manifest and MainActivity")
 
 
